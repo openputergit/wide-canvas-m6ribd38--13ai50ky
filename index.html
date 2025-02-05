@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Office Attendance System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+</head>
+<body class="bg-slate-100 font-[Inter]">
+    <div class="container mx-auto px-4 py-8 max-w-6xl">
+        <h1 class="text-3xl font-bold text-center mb-8 text-slate-800">Office Attendance System</h1>
+
+        <!-- Date Selection -->
+        <div class="mb-6">
+            <input type="date" id="attendanceDate" class="w-full md:w-auto px-4 py-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500" value="">
+        </div>
+
+        <!-- Entry Form -->
+        <div class="bg-white rounded-xl p-6 shadow-lg mb-8">
+            <h2 class="text-xl font-semibold mb-4 text-slate-700">Record Attendance</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <input type="text" id="employeeName" placeholder="Employee Name" class="px-4 py-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <input type="time" id="entryTime" class="px-4 py-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <input type="time" id="exitTime" class="px-4 py-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <button onclick="addAttendance()" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                    Add Entry
+                </button>
+            </div>
+        </div>
+
+        <!-- Attendance List -->
+        <div class="bg-white rounded-xl p-6 shadow-lg overflow-x-auto">
+            <h2 class="text-xl font-semibold mb-4 text-slate-700">Today's Attendance</h2>
+            <table class="min-w-full">
+                <thead>
+                    <tr class="border-b border-slate-200">
+                        <th class="text-left px-4 py-2">Name</th>
+                        <th class="text-left px-4 py-2">Date</th>
+                        <th class="text-left px-4 py-2">Entry Time</th>
+                        <th class="text-left px-4 py-2">Exit Time</th>
+                        <th class="text-left px-4 py-2">Status</th>
+                        <th class="text-left px-4 py-2">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="attendanceList">
+                    <!-- Attendance entries will be populated here -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        // Initialize date input with today's date
+        document.getElementById('attendanceDate').valueAsDate = new Date();
+
+        // Store attendance records
+        let attendanceRecords = [];
+
+        function addAttendance() {
+            const name = document.getElementById('employeeName').value;
+            const date = document.getElementById('attendanceDate').value;
+            const entryTime = document.getElementById('entryTime').value;
+            const exitTime = document.getElementById('exitTime').value;
+
+            if (!name || !date || !entryTime) {
+                alert('Please fill in at least the name, date, and entry time!');
+                return;
+            }
+
+            const status = calculateStatus(entryTime);
+            
+            const record = {
+                id: Date.now(),
+                name,
+                date,
+                entryTime,
+                exitTime,
+                status
+            };
+
+            attendanceRecords.push(record);
+            updateAttendanceList();
+            clearForm();
+        }
+
+        function calculateStatus(entryTime) {
+            const [hours, minutes] = entryTime.split(':');
+            const entryDateTime = new Date();
+            entryDateTime.setHours(parseInt(hours), parseInt(minutes));
+            
+            const standardTime = new Date();
+            standardTime.setHours(9, 0); // 9:00 AM standard time
+
+            return entryDateTime <= standardTime ? 'Present' : 'Late';
+        }
+
+        function deleteRecord(id) {
+            attendanceRecords = attendanceRecords.filter(record => record.id !== id);
+            updateAttendanceList();
+        }
+
+        function updateAttendanceList() {
+            const tbody = document.getElementById('attendanceList');
+            tbody.innerHTML = '';
+
+            attendanceRecords.forEach(record => {
+                const row = document.createElement('tr');
+                row.className = 'border-b border-slate-200 hover:bg-slate-50';
+                
+                row.innerHTML = `
+                    <td class="px-4 py-2">${record.name}</td>
+                    <td class="px-4 py-2">${record.date}</td>
+                    <td class="px-4 py-2">${record.entryTime}</td>
+                    <td class="px-4 py-2">${record.exitTime || '-'}</td>
+                    <td class="px-4 py-2">
+                        <span class="px-2 py-1 rounded-full text-sm ${
+                            record.status === 'Present' 
+                            ? 'bg-green-100 text-green-800' 
+                            : 'bg-yellow-100 text-yellow-800'
+                        }">
+                            ${record.status}
+                        </span>
+                    </td>
+                    <td class="px-4 py-2">
+                        <button onclick="deleteRecord(${record.id})" class="text-red-600 hover:text-red-800">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </td>
+                `;
+                
+                tbody.appendChild(row);
+            });
+        }
+
+        function clearForm() {
+            document.getElementById('employeeName').value = '';
+            document.getElementById('entryTime').value = '';
+            document.getElementById('exitTime').value = '';
+        }
+    </script>
+<script>document.body.addEventListener('wheel', e => { if (!e.ctrlKey) return; e.preventDefault(); return }, { passive: false })</script>
+	</body>
+</html>
